@@ -8,18 +8,34 @@
   <style>
     body {
       font-family: 'Oswald', sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
       margin: 0;
-      background-color: #f7f9fc;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: url('https://wallpapercave.com/wp/wp9764093.jpg') no-repeat center center fixed;
+      background-size: cover;
+      position: relative;
+    }
+
+    /* Overlay for 85% background opacity */
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(255, 255, 255, 0.85);
+      z-index: 0;
+    }
+
+    h1, form {
+      z-index: 1;
     }
 
     h1 {
       margin-bottom: 20px;
       color: #333;
+      text-align: center;
     }
 
     form {
@@ -32,6 +48,8 @@
       align-items: center;
       gap: 15px;
       width: 300px;
+      z-index: 1;
+      position: relative;
     }
 
     label {
@@ -76,40 +94,29 @@
       color: #2ecc71;
       font-size: 1.5rem;
       display: none;
-    }
-
-    #output {
-      margin-top: 20px;
-      background-color: #f0f0f0;
-      padding: 15px;
-      width: 80%;
-      max-width: 700px;
-      border-radius: 8px;
-      white-space: pre-wrap;
-      font-size: 0.9rem;
+      text-align: center;
     }
   </style>
 </head>
 <body>
-  <h1>Send a Message to FME</h1>
+  <div>
+    <h1>Send a Message to FME</h1>
 
-  <form id="apiForm">
-    <label for="subject">Subject:</label>
-    <input type="text" id="subject" name="subject" required>
+    <form id="apiForm">
+      <label for="subject">Subject:</label>
+      <input type="text" id="subject" name="subject" required>
 
-    <label for="body">Body:</label>
-    <textarea id="body" name="body" required></textarea>
+      <label for="body">Body:</label>
+      <textarea id="body" name="body" required></textarea>
 
-    <button type="submit">Send to FME</button>
-    <div id="successMessage">✅ Success!</div>
-  </form>
-
-  <pre id="output"></pre>
+      <button type="submit">Send to FME</button>
+      <div id="successMessage">✅ Success!</div>
+    </form>
+  </div>
 
   <script>
     document.getElementById('apiForm').addEventListener('submit', async function (e) {
       e.preventDefault();
-
       document.getElementById('successMessage').style.display = 'none'; // Reset
 
       const subject = document.getElementById('subject').value;
@@ -138,10 +145,8 @@
         if (data.status && data.status === "SUCCESS") {
           document.getElementById('successMessage').style.display = 'block';
         }
-
-        document.getElementById('output').textContent = JSON.stringify(data, null, 2);
       } catch (error) {
-        document.getElementById('output').textContent = 'Error: ' + error;
+        alert('There was an error sending the request: ' + error);
       }
     });
   </script>
