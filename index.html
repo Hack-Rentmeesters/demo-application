@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>FME REST API Demo</title>
+</head>
+<body>
+  <h1>Send a Message to FME</h1>
+  <form id="apiForm">
+    <label for="subject">Subject:</label>
+    <input type="text" id="subject" name="subject" required><br><br>
+
+    <label for="body">Body:</label>
+    <textarea id="body" name="body" required></textarea><br><br>
+
+    <button type="submit">Send to FME</button>
+  </form>
+
+  <h3>API Response:</h3>
+  <pre id="output"></pre>
+
+  <script>
+    document.getElementById('apiForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const subject = document.getElementById('subject').value;
+      const body = document.getElementById('body').value;
+
+      const payload = {
+        publishedParameters: [
+          { name: "subject", value: subject },
+          { name: "body", value: body }
+        ]
+      };
+
+      try {
+        const response = await fetch("https://assistent.hackrentmeesters.nl/fmerest/v3/transformations/transact/Samples/REST_API_test.fmw", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': 'fmetoken token=f4e0a58e071b811b7e2d0d43c9305b16924d67b5'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+        document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+      } catch (error) {
+        document.getElementById('output').textContent = 'Error: ' + error;
+      }
+    });
+  </script>
+</body>
+</html>
