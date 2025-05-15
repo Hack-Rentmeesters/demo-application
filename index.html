@@ -32,13 +32,10 @@
     }
 
     h1 {
-    margin-bottom: 20px;
-    color: white;              /* Make the text white */
-    font-size: 2.2rem;         /* Increase the size */
-    text-align: center;
-    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5); /* Optional: adds nice contrast */
+      margin-bottom: 20px;
+      color: #333;
+      text-align: center;
     }
-
 
     form {
       background: #fff;
@@ -60,7 +57,7 @@
       color: #555;
     }
 
-    input[type="text"], select {
+    input[type="text"], input[type="email"], select {
       width: 100%;
       padding: 8px 12px;
       border-radius: 6px;
@@ -82,7 +79,7 @@
       transition: background-color 0.2s ease-in-out;
     }
 
-    button:hover {
+    button:hover:enabled {
       background-color: #45a049;
     }
 
@@ -92,6 +89,12 @@
       font-size: 1.5rem;
       display: none;
       text-align: center;
+    }
+
+    #loadingIndicator {
+      display: none;
+      text-align: center;
+      color: #333;
     }
   </style>
 </head>
@@ -104,57 +107,56 @@
       <input type="text" id="gemeente" name="gemeente" required>
 
       <label for="sectie">Sectie:</label>
-      <select id="sectie" name="SECTIE" required>
-		  <option value="">-- Selecteer --</option>
-		  <option value="A">A</option>
-		  <option value="B">B</option>
-		  <option value="C">C</option>
-		  <option value="D">D</option>
-		  <option value="E">E</option>
-		  <option value="F">F</option>
-		  <option value="G">G</option>
-		  <option value="H">H</option>
-		  <option value="I">I</option>
-		  <option value="J">J</option>
-		  <option value="K">K</option>
-		  <option value="L">L</option>
-		  <option value="M">M</option>
-		  <option value="N">N</option>
-		  <option value="O">O</option>
-		  <option value="P">P</option>
-		  <option value="Q">Q</option>
-		  <option value="R">R</option>
-		  <option value="S">S</option>
-		  <option value="T">T</option>
-		  <option value="U">U</option>
-		  <option value="V">V</option>
-		  <option value="W">W</option>
-		  <option value="X">X</option>
-		  <option value="Y">Y</option>
-		  <option value="Z">Z</option>
-		</select>
+      <select id="sectie" name="sectie" required>
+        <option value="">-- Kies een letter --</option>
+        ${[...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'].map(letter => `<option value="${letter}">${letter}</option>`).join('')}
+      </select>
 
-
-      <label for="percnr">Percelenummer:</label>
+      <label for="percnr">Perceelnummer:</label>
       <input type="text" id="percnr" name="percnr" required>
 
-      <label for="email">E-mailadres ontvanger:</label>
-      <input type="text" id="email" name="email" required>
+      <label for="recepient">Email ontvanger:</label>
+      <input type="email" id="recepient" name="recepient" required>
 
       <button type="submit">Verzenden</button>
+
+      <div id="loadingIndicator">
+        <img src="https://i.gifer.com/ZZ5H.gif" alt="Loading..." width="40" style="vertical-align: middle;" />
+        <span style="margin-left: 10px;">Bezig met verzenden...</span>
+      </div>
+
       <div id="successMessage">✅ Success!</div>
     </form>
   </div>
 
   <script>
+    // Populate sectie dropdown (A-Z)
+    const sectieSelect = document.getElementById('sectie');
+    if (sectieSelect.innerHTML.includes('${')) {
+      let letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+      sectieSelect.innerHTML = '<option value="">-- Kies een letter --</option>';
+      letters.forEach(letter => {
+        const opt = document.createElement('option');
+        opt.value = opt.textContent = letter;
+        sectieSelect.appendChild(opt);
+      });
+    }
+
     document.getElementById('apiForm').addEventListener('submit', async function (e) {
       e.preventDefault();
-      document.getElementById('successMessage').style.display = 'none';
+
+      const submitBtn = this.querySelector('button');
+      const loadingIndicator = document.getElementById('loadingIndicator');
+      const successMessage = document.getElementById('successMessage');
+
+      successMessage.style.display = 'none';
+      loadingIndicator.style.display = 'block';
+      submitBtn.disabled = true;
 
       const gemeente = document.getElementById('gemeente').value;
       const sectie = document.getElementById('sectie').value;
       const percnr = document.getElementById('percnr').value;
-      const email = document.getElementById('email').value;
+      const recipient = document.getElementById('recepient').value;
 
       const payload = {
         publishedParameters: [
@@ -162,7 +164,7 @@
           { name: "GEMEENTE", value: gemeente },
           { name: "SECTIE", value: sectie },
           { name: "PERCNR", value: percnr },
-          { name: "Recepient", value: email }
+          { name: "Recepient", value: recipient }
         ]
       };
 
@@ -180,10 +182,13 @@
         const data = await response.json();
 
         if (data.status && data.status === "SUCCESS") {
-          document.getElementById('successMessage').style.display = 'block';
+          successMessage.style.display = 'block';
         }
       } catch (error) {
-        alert('Er is een fout opgetreden tijdens het verzenden: ' + error);
+        alert('Er ging iets mis bij het verzenden: ' + error);
+      } finally {
+        loadingIndicator.style.display = 'none';
+        submitBtn.disabled = false;
       }
     });
   </script>
