@@ -118,7 +118,7 @@
       <label for="recepient">Email ontvanger:</label>
       <input type="email" id="recepient" name="recepient" required>
 
-      <button type="submit">Verzenden</button>
+      <button type="submit" id="submitBtn">Verzenden</button>
 
       <div id="loadingIndicator">
         <img src="https://i.gifer.com/ZZ5H.gif" alt="Loading..." width="40" style="vertical-align: middle;" />
@@ -130,7 +130,7 @@
   </div>
 
   <script>
-    // Populate sectie dropdown (A-Z)
+    // Populate sectie dropdown (A-Z) dynamically if placeholder exists
     const sectieSelect = document.getElementById('sectie');
     if (sectieSelect.innerHTML.includes('${')) {
       let letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
@@ -145,13 +145,13 @@
     document.getElementById('apiForm').addEventListener('submit', async function (e) {
       e.preventDefault();
 
-      const submitBtn = this.querySelector('button');
+      const submitBtn = document.getElementById('submitBtn');
       const loadingIndicator = document.getElementById('loadingIndicator');
       const successMessage = document.getElementById('successMessage');
 
       successMessage.style.display = 'none';
       loadingIndicator.style.display = 'block';
-      submitBtn.disabled = true;
+      submitBtn.style.display = 'none'; // Hide button
 
       const gemeente = document.getElementById('gemeente').value;
       const sectie = document.getElementById('sectie').value;
@@ -188,7 +188,7 @@
         alert('Er ging iets mis bij het verzenden: ' + error);
       } finally {
         loadingIndicator.style.display = 'none';
-        submitBtn.disabled = false;
+        submitBtn.style.display = 'inline-block'; // Show button again
       }
     });
   </script>
