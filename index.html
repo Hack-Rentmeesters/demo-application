@@ -33,10 +33,10 @@
 
     h1 {
       margin-bottom: 20px;
-      color: white;              /* Make the text white */
-      font-size: 2.2rem;         /* Increase the size */
+      color: white;
+      font-size: 2.2rem;
       text-align: center;
-      text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5); /* Optional: adds nice contrast */
+      text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
     }
 
     #formContainer {
@@ -48,7 +48,7 @@
       flex-direction: column;
       align-items: center;
       gap: 15px;
-      width: 300px;
+      width: 400px;
       z-index: 1;
       position: relative;
     }
@@ -59,14 +59,32 @@
       color: #555;
     }
 
-    input[type="text"], select {
-      width: 100%;
-      padding: 8px 12px;
+    .parcel-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .parcel-row input,
+    .parcel-row select {
+      padding: 8px;
+      font-size: 1rem;
       border-radius: 6px;
       border: 1px solid #ccc;
       font-family: 'Oswald', sans-serif;
-      font-size: 1rem;
-      box-sizing: border-box;
+    }
+
+    .parcel-row input {
+      width: 120px;
+    }
+
+    .parcel-row select {
+      width: 60px;
+    }
+
+    #addParcelBtn {
+      align-self: flex-start;
+      background-color: #2196F3;
     }
 
     button {
@@ -105,16 +123,19 @@
     <h1>Situatietekeninggenerator</h1>
 
     <div id="formContainer">
-      <label for="gemeente">Gemeente:</label>
-      <input type="text" id="gemeente" name="gemeente" required>
+      <label>Perceelinformatie:</label>
+      <div id="parcelsContainer">
+        <!-- First parcel row -->
+        <div class="parcel-row">
+          <input type="text" name="gemeente" placeholder="Gemeente" required>
+          <select name="sectie" required>
+            <option value="">Sectie</option>
+          </select>
+          <input type="text" name="percnr" placeholder="Perceelnummer" required>
+        </div>
+      </div>
 
-      <label for="sectie">Sectie:</label>
-      <select id="sectie" name="sectie" required>
-        <option value="">-- Kies een letter --</option>
-      </select>
-
-      <label for="percnr">Perceelnummer:</label>
-      <input type="text" id="percnr" name="percnr" required>
+      <button id="addParcelBtn">+ Perceel toevoegen</button>
 
       <label for="recepient">Ontvanger e-mailadres:</label>
       <input type="text" id="recepient" name="recepient" required>
@@ -126,41 +147,89 @@
   </div>
 
   <script>
-    // Populate sectie options
-    const sectieSelect = document.getElementById('sectie');
-    'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach(letter => {
-      const option = document.createElement('option');
-      option.value = letter;
-      option.textContent = letter;
-      sectieSelect.appendChild(option);
-    });
-
+    const parcelsContainer = document.getElementById('parcelsContainer');
+    const addParcelBtn = document.getElementById('addParcelBtn');
     const submitBtn = document.getElementById('submitBtn');
     const loadingIndicator = document.getElementById('loadingIndicator');
     const successMessage = document.getElementById('successMessage');
 
     let isSubmitting = false;
 
-    submitBtn.addEventListener('click', async function () {
+    // Fill initial select
+    function createSectieOptions(select) {
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach(letter => {
+        const option = document.createElement('option');
+        option.value = letter;
+        option.textContent = letter;
+        select.appendChild(option);
+      });
+    }
+
+    // Add new parcel row
+    addParcelBtn.addEventListener('click', () => {
+      const row = document.createElement('div');
+      row.className = 'parcel-row';
+
+      const gemeenteInput = document.createElement('input');
+      gemeenteInput.type = 'text';
+      gemeenteInput.name = 'gemeente';
+      gemeenteInput.placeholder = 'Gemeente';
+
+      const sectieSelect = document.createElement('select');
+      sectieSelect.name = 'sectie';
+      createSectieOptions(sectieSelect);
+      const defaultOption = document.createElement('option');
+      defaultOption.value = '';
+      defaultOption.textContent = 'Sectie';
+      defaultOption.selected = true;
+      sectieSelect.insertBefore(defaultOption, sectieSelect.firstChild);
+
+      const percnrInput = document.createElement('input');
+      percnrInput.type = 'text';
+      percnrInput.name = 'percnr';
+      percnrInput.placeholder = 'Perceelnummer';
+
+      row.appendChild(gemeenteInput);
+      row.appendChild(sectieSelect);
+      row.appendChild(percnrInput);
+      parcelsContainer.appendChild(row);
+    });
+
+    // Initial select box setup
+    createSectieOptions(document.querySelector('select[name="sectie"]'));
+
+    submitBtn.addEventListener('click', async () => {
       if (isSubmitting) return;
       isSubmitting = true;
 
-      // UI updates
       submitBtn.style.display = 'none';
       loadingIndicator.style.display = 'block';
       successMessage.style.display = 'none';
 
-      const gemeente = document.getElementById('gemeente').value;
-      const sectie = document.getElementById('sectie').value;
-      const percnr = document.getElementById('percnr').value;
-      const recipient = document.getElementById('recepient').value;
+      const gemeenteValues = [];
+      const sectieValues = [];
+      const percnrValues = [];
+
+      document.querySelectorAll('.parcel-row').forEach(row => {
+        const gemeente = row.querySelector('input[name="gemeente"]').value.trim();
+        const sectie = row.querySelector('select[name="sectie"]').value.trim();
+        const percnr = row.querySelector('input[name="percnr"]').value.trim();
+
+        if (gemeente && sectie && percnr) {
+          gemeenteValues.push(gemeente);
+          sectieValues.push(sectie);
+          percnrValues.push(percnr);
+        }
+      });
+
+      const recipient = document.getElementById('recepient').value.trim();
 
       const payload = {
         publishedParameters: [
-          { name: "Een_of_meer_percelen", value: "1" },
-          { name: "GEMEENTE", value: gemeente },
-          { name: "SECTIE", value: sectie },
-          { name: "PERCNR", value: percnr },
+          { name: "Een_of_meer_percelen", value: gemeenteValues.length > 1 ? "2" : "1" },
+          { name: "GEMEENTE", value: gemeenteValues.join(',') },
+          { name: "SECTIE", value: sectieValues.join(',') },
+          { name: "PERCNR", value: percnrValues.join(',') },
           { name: "Recepient", value: recipient }
         ]
       };
@@ -177,7 +246,6 @@
         });
 
         const data = await response.json();
-
         if (data.status && data.status === "SUCCESS") {
           successMessage.style.display = 'block';
         } else {
