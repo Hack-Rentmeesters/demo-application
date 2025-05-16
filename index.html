@@ -48,43 +48,29 @@
       flex-direction: column;
       align-items: center;
       gap: 15px;
-      width: 400px;
+      width: 100%;
+      max-width: 800px;
       z-index: 1;
       position: relative;
-    }
-
-    label {
-      width: 100%;
-      font-size: 1rem;
-      color: #555;
     }
 
     .parcel-row {
       display: flex;
       gap: 10px;
+      flex-wrap: wrap;
+      width: 100%;
       margin-bottom: 10px;
     }
 
-    .parcel-row input,
-    .parcel-row select {
-      padding: 8px;
-      font-size: 1rem;
+    input[type="text"], select {
+      padding: 8px 12px;
       border-radius: 6px;
       border: 1px solid #ccc;
       font-family: 'Oswald', sans-serif;
-    }
-
-    .parcel-row input {
-      width: 120px;
-    }
-
-    .parcel-row select {
-      width: 60px;
-    }
-
-    #addParcelBtn {
-      align-self: flex-start;
-      background-color: #2196F3;
+      font-size: 1rem;
+      box-sizing: border-box;
+      flex: 1;
+      min-width: 120px;
     }
 
     button {
@@ -121,21 +107,9 @@
 <body>
   <div>
     <h1>Situatietekeninggenerator</h1>
-
     <div id="formContainer">
-      <label>Perceelinformatie:</label>
-      <div id="parcelsContainer">
-        <!-- First parcel row -->
-        <div class="parcel-row">
-          <input type="text" name="gemeente" placeholder="Gemeente" required>
-          <select name="sectie" required>
-            <option value="">Sectie</option>
-          </select>
-          <input type="text" name="percnr" placeholder="Perceelnummer" required>
-        </div>
-      </div>
-
-      <button id="addParcelBtn">+ Perceel toevoegen</button>
+      <div id="parcelsContainer"></div>
+      <button type="button" id="addParcelBtn">➕ Perceel toevoegen</button>
 
       <label for="recepient">Ontvanger e-mailadres:</label>
       <input type="text" id="recepient" name="recepient" required>
@@ -153,83 +127,118 @@
     const loadingIndicator = document.getElementById('loadingIndicator');
     const successMessage = document.getElementById('successMessage');
 
-    let isSubmitting = false;
+    function createSectieSelect() {
+      const select = document.createElement('select');
+      select.name = 'sectie';
+      select.required = true;
 
-    // Fill initial select
-    function createSectieOptions(select) {
+      const emptyOption = document.createElement('option');
+      emptyOption.value = '';
+      emptyOption.textContent = '-- Sectie --';
+      select.appendChild(emptyOption);
+
       'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach(letter => {
         const option = document.createElement('option');
         option.value = letter;
         option.textContent = letter;
         select.appendChild(option);
       });
+      return select;
     }
 
-    // Add new parcel row
-    addParcelBtn.addEventListener('click', () => {
+    function createClusterSelect() {
+      const select = document.createElement('select');
+      select.name = 'clusternummer';
+      select.classList.add('cluster-select');
+
+      ['-', ...Array.from({ length: 10 }, (_, i) => i + 1)].forEach(val => {
+        const option = document.createElement('option');
+        option.value = val;
+        option.textContent = val;
+        select.appendChild(option);
+      });
+      return select;
+    }
+
+    function addParcelRow() {
       const row = document.createElement('div');
-      row.className = 'parcel-row';
+      row.classList.add('parcel-row');
 
       const gemeenteInput = document.createElement('input');
       gemeenteInput.type = 'text';
       gemeenteInput.name = 'gemeente';
       gemeenteInput.placeholder = 'Gemeente';
+      gemeenteInput.required = true;
 
-      const sectieSelect = document.createElement('select');
-      sectieSelect.name = 'sectie';
-      createSectieOptions(sectieSelect);
-      const defaultOption = document.createElement('option');
-      defaultOption.value = '';
-      defaultOption.textContent = 'Sectie';
-      defaultOption.selected = true;
-      sectieSelect.insertBefore(defaultOption, sectieSelect.firstChild);
+      const sectieSelect = createSectieSelect();
 
       const percnrInput = document.createElement('input');
       percnrInput.type = 'text';
       percnrInput.name = 'percnr';
       percnrInput.placeholder = 'Perceelnummer';
+      percnrInput.required = true;
+
+      const clusterSelect = createClusterSelect();
 
       row.appendChild(gemeenteInput);
       row.appendChild(sectieSelect);
       row.appendChild(percnrInput);
+      row.appendChild(clusterSelect);
+
       parcelsContainer.appendChild(row);
+      updateClusterVisibility();
+    }
+
+    function updateClusterVisibility() {
+      const rows = parcelsContainer.querySelectorAll('.parcel-row');
+      const showCluster = rows.length > 1;
+
+      rows.forEach(row => {
+        const clusterSelect = row.querySelector('.cluster-select');
+        if (clusterSelect) {
+          clusterSelect.style.display = showCluster ? 'block' : 'none';
+        }
+      });
+    }
+
+    addParcelBtn.addEventListener('click', () => {
+      addParcelRow();
     });
 
-    // Initial select box setup
-    createSectieOptions(document.querySelector('select[name="sectie"]'));
+    submitBtn.addEventListener('click', async function () {
+      const rows = parcelsContainer.querySelectorAll('.parcel-row');
 
-    submitBtn.addEventListener('click', async () => {
-      if (isSubmitting) return;
-      isSubmitting = true;
+      if (rows.length === 0) {
+        alert("Voeg minimaal één perceel toe.");
+        return;
+      }
 
       submitBtn.style.display = 'none';
       loadingIndicator.style.display = 'block';
       successMessage.style.display = 'none';
 
-      const gemeenteValues = [];
-      const sectieValues = [];
-      const percnrValues = [];
+      const gemeenten = [];
+      const secties = [];
+      const percnrs = [];
+      const clusternrs = [];
 
-      document.querySelectorAll('.parcel-row').forEach(row => {
-        const gemeente = row.querySelector('input[name="gemeente"]').value.trim();
-        const sectie = row.querySelector('select[name="sectie"]').value.trim();
-        const percnr = row.querySelector('input[name="percnr"]').value.trim();
-
-        if (gemeente && sectie && percnr) {
-          gemeenteValues.push(gemeente);
-          sectieValues.push(sectie);
-          percnrValues.push(percnr);
-        }
+      rows.forEach(row => {
+        gemeenten.push(row.querySelector('input[name="gemeente"]').value);
+        secties.push(row.querySelector('select[name="sectie"]').value);
+        percnrs.push(row.querySelector('input[name="percnr"]').value);
+        const clusterSelect = row.querySelector('select[name="clusternummer"]');
+        clusternrs.push(clusterSelect ? clusterSelect.value : '-');
       });
 
-      const recipient = document.getElementById('recepient').value.trim();
+      const recipient = document.getElementById('recepient').value;
 
       const payload = {
         publishedParameters: [
-          { name: "Een_of_meer_percelen", value: gemeenteValues.length > 1 ? "2" : "1" },
-          { name: "GEMEENTE", value: gemeenteValues.join(',') },
-          { name: "SECTIE", value: sectieValues.join(',') },
-          { name: "PERCNR", value: percnrValues.join(',') },
+          { name: "Een_of_meer_percelen", value: gemeenten.length > 1 ? "meer" : "1" },
+          { name: "GEMEENTE", value: gemeenten.join(',') },
+          { name: "SECTIE", value: secties.join(',') },
+          { name: "PERCNR", value: percnrs.join(',') },
+          { name: "CLUSTERNUMMER", value: clusternrs.join(',') },
           { name: "Recepient", value: recipient }
         ]
       };
@@ -256,9 +265,11 @@
       } finally {
         loadingIndicator.style.display = 'none';
         submitBtn.style.display = 'inline-block';
-        isSubmitting = false;
       }
     });
+
+    // Initialize first row
+    addParcelRow();
   </script>
 </body>
 </html>
