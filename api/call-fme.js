@@ -18,11 +18,13 @@ export default async function handler(req, res) {
       body: JSON.stringify(req.body)
     });
 
-    const data = await fmeResponse.json();
-    res.status(200).json(data);
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Something went wrong with the FME call.' });
-  }
+    const text = await response.text();  // always get raw text first
+    try {
+      const data = JSON.parse(text);
+      // proceed with JSON data
+    } catch (err) {
+      console.error('Response was not JSON:', text);
+      res.status(response.status).send(text);  // send raw error text back to frontend
+      return;
+    }
 }
