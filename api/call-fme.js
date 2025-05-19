@@ -3,7 +3,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const FME_URL = 'https://assistent.hackrentmeesters.nl/fmerest/v3/transformations/transact/Dashboards/FME_Situatietekening_Automatisering_Flow_V4_REST_API.fmw';
+  const FME_URL = 'https://assistent.hackrentmeesters.nl/fmerest/v3/transformations/submitSync/Dashboards/FME_Situatietekening_Automatisering_Flow_V4_REST_API.fmw';
 
   const token = process.env.FME_FLOW_TOKEN; // Stored securely in Vercel
   const headers = {
