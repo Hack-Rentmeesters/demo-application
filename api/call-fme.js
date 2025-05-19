@@ -1,8 +1,21 @@
 export default async function handler(req, res) {
+  // Handle CORS preflight
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Origin', 'https://ahmadrezaka.github.io'); // Or '*'
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.status(204).end();
+    return;
+  }
+
+  // Add CORS headers for actual requests
+  res.setHeader('Access-Control-Allow-Origin', 'https://ahmadrezaka.github.io'); // Or '*'
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // Your existing logic below
   try {
     const token = process.env.FME_FLOW_TOKEN;
     if (!token) {
