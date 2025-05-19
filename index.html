@@ -251,23 +251,22 @@
           },
           body: JSON.stringify(payload)
         });
-
-
-        const raw = await response.text();
-        try {
-          const data = JSON.parse(raw);
-          // handle JSON response normally
-        } catch(err) {
-          alert(`Fout bij verzenden: Response is not valid JSON.\n\nFull response:\n${raw}`);
-          console.error('Full response:', raw);
+      
+        const result = await response.json();
+      
+        if (!response.ok) {
+          // Show detailed error
+          alert(`Fout bij verzenden: ${result.error}`);
+        } else {
+          // Show success message with result if needed
+          alert("Verzoek succesvol verzonden!\nStatus: " + result.status + "\nJobID (indien beschikbaar): " + (result.id || 'Onbekend'));
+          console.log(result);
         }
-
+      
       } catch (error) {
-        alert('Fout bij verzenden: ' + error);
-      } finally {
-        loadingIndicator.style.display = 'none';
-        submitBtn.style.display = 'inline-block';
+        alert("Netwerkfout: " + error.message);
       }
+
     });
 
     // Initialize first row
