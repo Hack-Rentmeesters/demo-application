@@ -253,12 +253,15 @@
         });
 
 
-        const data = await response.json();
-        if (data.status && data.status === "SUCCESS") {
-          successMessage.style.display = 'block';
-        } else {
-          alert("Er ging iets mis met de API-aanroep.");
+        const raw = await response.text();
+        try {
+          const data = JSON.parse(raw);
+          // handle JSON response normally
+        } catch(err) {
+          alert(`Fout bij verzenden: Response is not valid JSON.\n\nFull response:\n${raw}`);
+          console.error('Full response:', raw);
         }
+
       } catch (error) {
         alert('Fout bij verzenden: ' + error);
       } finally {
