@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   const token = process.env.FME_FLOW_TOKEN;
 
   try {
-    const fmeResponse = await fetch('https://assistent.hackrentmeesters.nl/fmerest/v3/transformations/transact/Dashboards/FME_Situatietekening_Automatisering_Flow_V4_REST_API.fmw', {
+    const fmeResponse = await fetch('https://assistent.hackrentmeesters.nl/fmerest/v3/transformations/submit/Dashboards/FME_Situatietekening_Automatisering_Flow_V4_REST_API.fmw', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
