@@ -242,7 +242,6 @@
           { name: "Recepient", value: recipient }
         ]
       };
-
       try {
         const response = await fetch("/api/call-fme", {
           method: 'POST',
@@ -251,10 +250,16 @@
           },
           body: JSON.stringify(payload)
         });
-
-
-
-        const data = await response.json();
+      
+        const contentType = response.headers.get("content-type");
+        const rawText = await response.text();
+      
+        if (!contentType || !contentType.includes("application/json")) {
+          throw new Error("Response was not JSON:\n" + rawText);
+        }
+      
+        const data = JSON.parse(rawText);
+      
         if (data.status && data.status === "SUCCESS") {
           successMessage.style.display = 'block';
         } else {
@@ -262,10 +267,8 @@
         }
       } catch (error) {
         alert('Fout bij verzenden: ' + error);
-      } finally {
-        loadingIndicator.style.display = 'none';
-        submitBtn.style.display = 'inline-block';
       }
+
     });
 
     // Initialize first row
