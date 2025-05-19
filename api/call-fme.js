@@ -1,30 +1,5 @@
-// File: api/call-fme.js
-
-export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Only POST requests allowed' });
-  }
-
-  const token = process.env.FME_FLOW_TOKEN;
-
-  try {
-    const fmeResponse = await fetch('https://assistent.hackrentmeesters.nl/fmerest/v3/transformations/submit/Dashboards/FME_Situatietekening_Automatisering_Flow_V4_REST_API.fmw', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Authorization': `fmetoken token=${token}`
-      },
-      body: JSON.stringify(req.body)
-    });
-
-    const text = await response.text();  // always get raw text first
-    try {
-      const data = JSON.parse(text);
-      // proceed with JSON data
-    } catch (err) {
-      console.error('Response was not JSON:', text);
-      res.status(response.status).send(text);  // send raw error text back to frontend
-      return;
-    }
-}
+// Inside your backend route handler
+app.post("/submit", async (req, res) => {
+  console.log("Received from frontend:", req.body);
+  res.json({ status: "Frontend to backend is working", data: req.body });
+});
