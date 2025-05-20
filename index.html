@@ -26,6 +26,29 @@
       background-color: rgba(255, 255, 255, 0.25);
       z-index: 0;
     }
+    body::after {
+      content: '';
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      width: 100px;
+      height: auto;
+      background-image: url('https://www.hackrentmeesters.nl/wp-content/uploads/2019/05/HackRentmeesters-logo-standaard350x146.png');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: top left;
+      z-index: 10;
+      pointer-events: none;
+    }
+    
+    @media (max-width: 600px) {
+      body::after {
+        width: 70px;
+        top: 10px;
+        left: 10px;
+      }
+    }
+
 
     h1, #formContainer {
       z-index: 1;
