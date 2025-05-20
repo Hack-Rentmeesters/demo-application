@@ -14,7 +14,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      background: url('https://www.hackrentmeesters.nl/wp-content/uploads/2025/05/Background_github.jpg') no-repeat center center fixed;
+      background: url('https://www.hackrentmeesters.nl/wp-content/uploads/2025/05/Background_github_1.jpg') no-repeat center center fixed;
       background-size: cover;
       position: relative;
     }
@@ -26,29 +26,27 @@
       background-color: rgba(255, 255, 255, 0.25);
       z-index: 0;
     }
-    body::after {
-      content: '';
+
+    #logoContainer {
       position: fixed;
-      top: 20px;
-      left: 20px;
-      width: 100px;
-      height: auto;
-      background-image: url('https://www.hackrentmeesters.nl/wp-content/uploads/2019/05/HackRentmeesters-logo-standaard350x146.png');
-      background-size: contain;
-      background-repeat: no-repeat;
-      background-position: top left;
+      top: 50px;
+      left: 50px;
+      display: flex;
+      gap: 50px;
       z-index: 10;
       pointer-events: none;
     }
-    
-    @media (max-width: 600px) {
-      body::after {
-        width: 70px;
-        top: 10px;
-        left: 10px;
-      }
+
+    #logoContainer img {
+      height: 120px;
+      object-fit: contain;
     }
 
+    @media (max-width: 1000px) {
+      #logoContainer img {
+        height: 60px;
+      }
+    }
 
     h1, #formContainer {
       z-index: 1;
@@ -128,6 +126,12 @@
   </style>
 </head>
 <body>
+  <!-- Logos container -->
+  <div id="logoContainer">
+    <img src="https://www.hackrentmeesters.nl/wp-content/uploads/2025/05/DeRentmeesterAssistent.png" alt="Logo 1">
+    <img src="https://www.hackrentmeesters.nl/wp-content/uploads/2019/05/HackRentmeesters-logo-standaard350x146.png" alt="Logo 2">
+  </div>
+
   <div>
     <h1>Situatietekeninggenerator</h1>
     <div id="formContainer">
@@ -278,10 +282,8 @@
         const result = await response.json();
       
         if (!response.ok) {
-          // Show detailed error
           alert(`Fout bij verzenden: ${result.error}`);
         } else {
-          // Show success message with result if needed
           alert("Verzoek succesvol verzonden!\nStatus: " + result.status + "\nJobID (indien beschikbaar): " + (result.id || 'Onbekend'));
           console.log(result);
         }
