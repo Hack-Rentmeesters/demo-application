@@ -1,17 +1,26 @@
 export default function handler(req, res) {
-    res.setHeader('Access-Control-Allow-Origin', 'https://situatietekening.vercel.app/');
+    // CORS headers
+    res.setHeader('Access-Control-Allow-Origin', 'https://yourusername.github.io');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   
     if (req.method === 'OPTIONS') {
-      return res.status(200).end();
+      return res.status(200).end(); // Handle preflight
     }
   
-    // Continue with the login logic
+    if (req.method !== 'POST') {
+      return res.status(405).json({ error: 'Method not allowed' });
+    }
+  
     const { username, password } = req.body;
   
-    const validUsername = process.env.ADMIN_USERNAME || 'admin';
-    const validPassword = process.env.ADMIN_PASSWORD || 'secure123';
+    // ✅ Only use environment variables (no fallback!)
+    const validUsername = process.env.ADMIN_USERNAME;
+    const validPassword = process.env.ADMIN_PASSWORD;
+  
+    if (!validUsername || !validPassword) {
+      return res.status(500).json({ error: 'Server misconfigured: missing credentials' });
+    }
   
     if (username === validUsername && password === validPassword) {
       const token = Buffer.from(`${username}:${Date.now()}`).toString('base64');
