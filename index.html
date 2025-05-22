@@ -54,6 +54,19 @@
       position: relative;
     }
 
+    #logoutBtn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: #e74c3c;
+      padding: 8px 15px;
+      font-size: 0.9rem;
+    }
+
+    #logoutBtn:hover {
+      background-color: #c0392b;
+    }
+
     .parcel-row {
       display: flex;
       gap: 10px;
@@ -102,12 +115,46 @@
       display: none;
       text-align: center;
     }
+
+    #loginContainer {
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+      width: 100%;
+      max-width: 400px;
+      z-index: 1;
+      position: relative;
+    }
+
+    #mainContent {
+      display: none;
+    }
+
+    .error-message {
+      color: #e74c3c;
+      margin-top: 10px;
+      display: none;
+    }
   </style>
 </head>
 <body>
-  <div>
+  <div id="loginContainer">
+    <h1>Login</h1>
+    <input type="text" id="username" placeholder="Username" required>
+    <input type="password" id="password" placeholder="Password" required>
+    <button id="loginBtn">Login</button>
+    <div id="loginError" class="error-message">Invalid username or password</div>
+  </div>
+
+  <div id="mainContent">
     <h1>Situatietekeninggenerator</h1>
     <div id="formContainer">
+      <button id="logoutBtn">Logout</button>
       <div id="parcelsContainer"></div>
       <button type="button" id="addParcelBtn">➕ Perceel toevoegen</button>
 
@@ -121,6 +168,50 @@
   </div>
 
   <script>
+    // Login functionality
+    const loginContainer = document.getElementById('loginContainer');
+    const mainContent = document.getElementById('mainContent');
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const loginError = document.getElementById('loginError');
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+
+    // Check if user is already logged in
+    if (localStorage.getItem('isLoggedIn') === 'true') {
+      showMainContent();
+    }
+
+    loginBtn.addEventListener('click', () => {
+      const username = usernameInput.value;
+      const password = passwordInput.value;
+
+      // This is a simple example. In a real application, you should:
+      // 1. Use HTTPS
+      // 2. Hash passwords
+      // 3. Use a proper backend authentication system
+      if (username === 'admin' && password === 'password') {
+        localStorage.setItem('isLoggedIn', 'true');
+        showMainContent();
+      } else {
+        loginError.style.display = 'block';
+      }
+    });
+
+    logoutBtn.addEventListener('click', () => {
+      localStorage.removeItem('isLoggedIn');
+      mainContent.style.display = 'none';
+      loginContainer.style.display = 'flex';
+      usernameInput.value = '';
+      passwordInput.value = '';
+      loginError.style.display = 'none';
+    });
+
+    function showMainContent() {
+      loginContainer.style.display = 'none';
+      mainContent.style.display = 'block';
+    }
+
     const parcelsContainer = document.getElementById('parcelsContainer');
     const addParcelBtn = document.getElementById('addParcelBtn');
     const submitBtn = document.getElementById('submitBtn');
