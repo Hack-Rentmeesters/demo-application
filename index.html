@@ -60,7 +60,7 @@
       text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
     }
 
-    #formContainer {
+    #formContainer, #loginContainer {
       background: #fff;
       padding: 30px;
       border-radius: 12px;
@@ -137,21 +137,6 @@
       text-align: center;
     }
 
-    #loginContainer {
-      background: #fff;
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 15px;
-      width: 100%;
-      max-width: 400px;
-      z-index: 1;
-      position: relative;
-    }
-
     #mainContent {
       display: none;
     }
@@ -189,7 +174,6 @@
   </div>
 
   <script>
-    // Login functionality
     const loginContainer = document.getElementById('loginContainer');
     const mainContent = document.getElementById('mainContent');
     const loginBtn = document.getElementById('loginBtn');
@@ -198,29 +182,37 @@
     const usernameInput = document.getElementById('username');
     const passwordInput = document.getElementById('password');
 
-    // Check if user is already logged in
-    if (localStorage.getItem('isLoggedIn') === 'true') {
+    // Check if already logged in
+    if (localStorage.getItem('authToken')) {
       showMainContent();
     }
 
-    loginBtn.addEventListener('click', () => {
+    loginBtn.addEventListener('click', async () => {
       const username = usernameInput.value;
       const password = passwordInput.value;
 
-      // This is a simple example. In a real application, you should:
-      // 1. Use HTTPS
-      // 2. Hash passwords
-      // 3. Use a proper backend authentication system
-      if (username === 'admin' && password === 'password') {
-        localStorage.setItem('isLoggedIn', 'true');
-        showMainContent();
-      } else {
-        loginError.style.display = 'block';
+      try {
+        const response = await fetch("https://situatietekening.vercel.app/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.token) {
+          localStorage.setItem('authToken', data.token);
+          showMainContent();
+        } else {
+          loginError.style.display = 'block';
+        }
+      } catch (error) {
+        alert("Netwerkfout tijdens inloggen: " + error.message);
       }
     });
 
     logoutBtn.addEventListener('click', () => {
-      localStorage.removeItem('isLoggedIn');
+      localStorage.removeItem('authToken');
       mainContent.style.display = 'none';
       loginContainer.style.display = 'flex';
       usernameInput.value = '';
@@ -317,7 +309,7 @@
       addParcelRow();
     });
 
-    submitBtn.addEventListener('click', async function () {
+    submitBtn.addEventListener('click', async () => {
       const rows = parcelsContainer.querySelectorAll('.parcel-row');
 
       if (rows.length === 0) {
@@ -356,30 +348,34 @@
       };
 
       try {
+        const token = localStorage.getItem('authToken');
         const response = await fetch("https://situatietekening.vercel.app/api/call-fme", {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
           },
           body: JSON.stringify(payload)
         });
-      
+
         const result = await response.json();
-      
+
         if (!response.ok) {
           alert(`Fout bij verzenden: ${result.error}`);
         } else {
-          alert("Verzoek succesvol verzonden!\nStatus: " + result.status + "\nJobID (indien beschikbaar): " + (result.id || 'Onbekend'));
-          console.log(result);
+          alert("Verzoek succesvol verzonden!\nStatus: " + result.status + "\nJobID: " + (result.id || 'Onbekend'));
+          successMessage.style.display = 'block';
         }
-      
+
       } catch (error) {
         alert("Netwerkfout: " + error.message);
+      } finally {
+        submitBtn.style.display = 'block';
+        loadingIndicator.style.display = 'none';
       }
-
     });
 
-    // Initialize first row
+    // Initialize with one parcel row
     addParcelRow();
   </script>
 </body>
