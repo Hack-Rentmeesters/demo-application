@@ -176,6 +176,21 @@
       padding: 0 20px;
       z-index: 2;
     }
+
+    .contact-info {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+    }
+
+    .contact-info label {
+      font-weight: bold;
+      color: #333;
+    }
   </style>
 </head>
 <body>
@@ -197,8 +212,16 @@
       <div id="parcelsContainer"></div>
       <button type="button" id="addParcelBtn">➕ Perceel toevoegen</button>
 
-      <label for="recepient">Ontvanger e-mailadres:</label>
-      <input type="text" id="recepient" name="recepient" required>
+      <div class="contact-info">
+        <label for="naamNP">Naam:</label>
+        <input type="text" id="naamNP" name="naamNP" required placeholder="Vul uw naam in">
+
+        <label for="telNr">Telefoonnummer:</label>
+        <input type="tel" id="telNr" name="telNr" required placeholder="Vul uw telefoonnummer in">
+
+        <label for="recepient">E-mailadres:</label>
+        <input type="email" id="recepient" name="recepient" required placeholder="Vul uw e-mailadres in">
+      </div>
 
       <button id="submitBtn">Verzenden</button>
       <div id="loadingIndicator">⏳ Bezig met verzenden...</div>
@@ -367,6 +390,8 @@
         clusternrs.push(clusterSelect ? clusterSelect.value : '-');
       });
 
+      const naamNP = document.getElementById('naamNP').value;
+      const telNr = document.getElementById('telNr').value;
       const recipient = document.getElementById('recepient').value;
 
       const payload = {
@@ -376,6 +401,8 @@
           { name: "SECTIE", value: secties.join(',') },
           { name: "PERCNR", value: percnrs.join(',') },
           { name: "Clusternummer", value: clusternrs.join(',') },
+          { name: "NaamNP", value: naamNP },
+          { name: "TelNr", value: telNr },
           { name: "Recepient", value: recipient }
         ]
       };
