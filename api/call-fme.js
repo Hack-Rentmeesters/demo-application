@@ -22,7 +22,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Missing API token' });
     }
 
-    const FME_URL = 'https://assistent.hackrentmeesters.nl/fmerest/v3/transformations/transact/Dashboards/FME_Situatietekening_Automatisering_Flow_V4_REST_API.fmw';
+    const FME_URL = 'https://assistent.hackrentmeesters.nl/fmerest/v3/transformations/transact/Demo/FME_Situatietekening_Automatisering_Flow_V4_REST_API.fmw';
     const headers = {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
