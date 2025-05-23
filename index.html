@@ -88,6 +88,25 @@
       background-color: #c0392b;
     }
 
+    #backBtn {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-family: 'Oswald', sans-serif;
+      transition: background-color 0.2s ease-in-out;
+    }
+
+    #backBtn:hover {
+      background-color: #2980b9;
+    }
+
     .parcel-row {
       display: flex;
       gap: 10px;
@@ -160,6 +179,7 @@
   <div id="mainContent">
     <h1>Situatietekeninggenerator</h1>
     <div id="formContainer">
+      <button id="backBtn">← Back to Dashboard</button>
       <button id="logoutBtn">Logout</button>
       <div id="parcelsContainer"></div>
       <button type="button" id="addParcelBtn">➕ Perceel toevoegen</button>
@@ -377,6 +397,16 @@
 
     // Initialize with one parcel row
     addParcelRow();
+
+    // Check if user is logged in
+    if (!localStorage.getItem('authToken')) {
+      window.location.href = 'login.html';
+    }
+
+    // Back button functionality
+    document.getElementById('backBtn').addEventListener('click', () => {
+      window.location.href = 'dashboard.html';
+    });
   </script>
 </body>
 </html>
