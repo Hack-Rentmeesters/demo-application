@@ -165,6 +165,17 @@
       margin-top: 10px;
       display: none;
     }
+
+    .button-container {
+      position: fixed;
+      top: 20px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 20px;
+      z-index: 2;
+    }
   </style>
 </head>
 <body>
@@ -177,10 +188,12 @@
   </div>
 
   <div id="mainContent">
-    <h1>Situatietekeninggenerator</h1>
-    <div id="formContainer">
+    <div class="button-container">
       <button id="backBtn">← Back to Dashboard</button>
       <button id="logoutBtn">Logout</button>
+    </div>
+    <h1>Situatietekeninggenerator</h1>
+    <div id="formContainer">
       <div id="parcelsContainer"></div>
       <button type="button" id="addParcelBtn">➕ Perceel toevoegen</button>
 
