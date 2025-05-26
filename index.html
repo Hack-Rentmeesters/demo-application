@@ -461,6 +461,7 @@
       const recipient = document.getElementById('recepient').value;
 
       const payload = {
+        applicationType: 'situatietekening',
         publishedParameters: [
           { name: "Een_of_meer_percelen", value: gemeenten.length > 1 ? "2" : "1" },
           { name: "GEMEENTE", value: gemeenten.join(',') },
