@@ -109,6 +109,60 @@
       background-color: #2980b9;
     }
 
+    .parcel-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      width: 100%;
+      margin-bottom: 10px;
+      align-items: center;
+      position: relative;
+      padding-right: 50px;
+    }
+
+    .remove-parcel {
+      text-decoration: none;
+      text-align: center;
+      padding: 9px 15px;
+      border: none;
+      -webkit-border-radius: 4px;
+      -moz-border-radius: 4px;
+      border-radius: 4px;
+      font: 18px Arial, Helvetica, sans-serif;
+      font-weight: bold;
+      color: #e8e8e8;
+      background-color: #c73b3b;
+      background-image: -moz-linear-gradient(top, #c73b3b 0%, #ff2424 100%);
+      background-image: -webkit-linear-gradient(top, #c73b3b 0%, #ff2424 100%);
+      background-image: -o-linear-gradient(top, #c73b3b 0%, #ff2424 100%);
+      background-image: -ms-linear-gradient(top, #c73b3b 0%, #ff2424 100%);
+      filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff2424', endColorstr='#ff2424', GradientType=0);
+      background-image: linear-gradient(top, #c73b3b 0%, #ff2424 100%);
+      -webkit-box-shadow: 0px 0px 2px #bababa, inset 0px 0px 1px #ffffff;
+      -moz-box-shadow: 0px 0px 2px #bababa, inset 0px 0px 1px #ffffff;
+      box-shadow: 0px 0px 2px #bababa, inset 0px 0px 1px #ffffff;
+      cursor: pointer;
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: auto;
+      height: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .remove-parcel:hover {
+      background-color: #ff2424;
+      background-image: -moz-linear-gradient(top, #ff2424 0%, #c73b3b 100%);
+      background-image: -webkit-linear-gradient(top, #ff2424 0%, #c73b3b 100%);
+      background-image: -o-linear-gradient(top, #ff2424 0%, #c73b3b 100%);
+      background-image: -ms-linear-gradient(top, #ff2424 0%, #c73b3b 100%);
+      filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#c73b3b', endColorstr='#c73b3b', GradientType=0);
+      background-image: linear-gradient(top, #ff2424 0%, #c73b3b 100%);
+    }
+
     input[type="text"], input[type="tel"], input[type="email"], select {
       padding: 8px 12px;
       border-radius: 6px;
@@ -116,8 +170,8 @@
       font-family: 'Oswald', sans-serif;
       font-size: 1rem;
       box-sizing: border-box;
-      width: 100%;
-      margin-bottom: 10px;
+      flex: 1;
+      min-width: 120px;
     }
 
     button {
@@ -167,16 +221,25 @@
       z-index: 2;
     }
 
-    .form-group {
+    .contact-info {
       width: 100%;
-      margin-bottom: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
     }
 
-    .form-group label {
-      display: block;
-      margin-bottom: 5px;
+    .contact-info label {
       font-weight: bold;
       color: #333;
+      margin-bottom: 5px;
+    }
+
+    .contact-info input {
+      width: 100%;
+      margin-bottom: 10px;
     }
   </style>
 </head>
@@ -188,38 +251,16 @@
 
   <h1>Factsheet Generator</h1>
   <div id="formContainer">
-    <div class="form-group">
-      <label for="gemeente">Gemeente:</label>
-      <input type="text" id="gemeente" name="gemeente" required placeholder="Vul de gemeente in">
-    </div>
+    <div id="parcelsContainer"></div>
+    <button type="button" id="addParcelBtn">➕ Perceel toevoegen</button>
 
-    <div class="form-group">
-      <label for="sectie">Sectie:</label>
-      <select id="sectie" name="sectie" required>
-        <option value="">-- Selecteer sectie --</option>
-        <option value="A">A</option>
-        <option value="B">B</option>
-        <option value="C">C</option>
-        <!-- Add more sections as needed -->
-      </select>
-    </div>
-
-    <div class="form-group">
-      <label for="percnr">Perceelnummer:</label>
-      <input type="text" id="percnr" name="percnr" required placeholder="Vul het perceelnummer in">
-    </div>
-
-    <div class="form-group">
+    <div class="contact-info">
       <label for="naamNP">Naam:</label>
       <input type="text" id="naamNP" name="naamNP" required placeholder="Vul uw naam in">
-    </div>
 
-    <div class="form-group">
       <label for="telNr">Telefoonnummer:</label>
       <input type="tel" id="telNr" name="telNr" required placeholder="Vul uw telefoonnummer in">
-    </div>
 
-    <div class="form-group">
       <label for="recepient">E-mailadres:</label>
       <input type="email" id="recepient" name="recepient" required placeholder="Vul uw e-mailadres in">
     </div>
@@ -235,18 +276,127 @@
       window.location.href = 'login.html';
     }
 
+    const parcelsContainer = document.getElementById('parcelsContainer');
+    const addParcelBtn = document.getElementById('addParcelBtn');
     const submitBtn = document.getElementById('submitBtn');
     const loadingIndicator = document.getElementById('loadingIndicator');
     const successMessage = document.getElementById('successMessage');
 
+    function createSectieSelect() {
+      const select = document.createElement('select');
+      select.name = 'sectie';
+      select.required = true;
+
+      const emptyOption = document.createElement('option');
+      emptyOption.value = '';
+      emptyOption.textContent = '-- Sectie --';
+      select.appendChild(emptyOption);
+
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach(letter => {
+        const option = document.createElement('option');
+        option.value = letter;
+        option.textContent = letter;
+        select.appendChild(option);
+      });
+      return select;
+    }
+
+    function createClusterSelect() {
+      const select = document.createElement('select');
+      select.name = 'clusternummer';
+      select.classList.add('cluster-select');
+
+      ['-', ...Array.from({ length: 10 }, (_, i) => i + 1)].forEach(val => {
+        const option = document.createElement('option');
+        option.value = val;
+        option.textContent = val;
+        select.appendChild(option);
+      });
+      return select;
+    }
+
+    function addParcelRow() {
+      const row = document.createElement('div');
+      row.classList.add('parcel-row');
+
+      const gemeenteInput = document.createElement('input');
+      gemeenteInput.type = 'text';
+      gemeenteInput.name = 'gemeente';
+      gemeenteInput.placeholder = 'Gemeente';
+      gemeenteInput.required = true;
+
+      const sectieSelect = createSectieSelect();
+
+      const percnrInput = document.createElement('input');
+      percnrInput.type = 'text';
+      percnrInput.name = 'percnr';
+      percnrInput.placeholder = 'Perceelnummer';
+      percnrInput.required = true;
+
+      const clusterSelect = createClusterSelect();
+
+      // Add remove button if there's more than one row
+      if (parcelsContainer.children.length > 0) {
+        const removeBtn = document.createElement('button');
+        removeBtn.classList.add('remove-parcel');
+        removeBtn.innerHTML = '×';
+        removeBtn.addEventListener('click', () => {
+          row.remove();
+          updateClusterVisibility();
+        });
+        row.appendChild(removeBtn);
+      }
+
+      row.appendChild(gemeenteInput);
+      row.appendChild(sectieSelect);
+      row.appendChild(percnrInput);
+      row.appendChild(clusterSelect);
+
+      parcelsContainer.appendChild(row);
+      updateClusterVisibility();
+    }
+
+    function updateClusterVisibility() {
+      const rows = parcelsContainer.querySelectorAll('.parcel-row');
+      const showCluster = rows.length > 1;
+
+      rows.forEach(row => {
+        const clusterSelect = row.querySelector('.cluster-select');
+        if (clusterSelect) {
+          clusterSelect.style.display = showCluster ? 'block' : 'none';
+        }
+      });
+    }
+
+    addParcelBtn.addEventListener('click', () => {
+      addParcelRow();
+    });
+
     submitBtn.addEventListener('click', async () => {
+      const rows = parcelsContainer.querySelectorAll('.parcel-row');
+
+      if (rows.length === 0) {
+        alert("Voeg minimaal één perceel toe.");
+        return;
+      }
+
       submitBtn.style.display = 'none';
       loadingIndicator.style.display = 'block';
       successMessage.style.display = 'none';
 
-      const gemeente = document.getElementById('gemeente').value;
-      const sectie = document.getElementById('sectie').value;
-      const percnr = document.getElementById('percnr').value;
+      const gemeenten = [];
+      const secties = [];
+      const percnrs = [];
+      const clusternrs = [];
+
+      rows.forEach(row => {
+        gemeenten.push(row.querySelector('input[name="gemeente"]').value);
+        secties.push(row.querySelector('select[name="sectie"]').value);
+        percnrs.push(row.querySelector('input[name="percnr"]').value);
+        const clusterSelect = row.querySelector('select[name="clusternummer"]');
+        clusternrs.push(clusterSelect ? clusterSelect.value : '-');
+      });
+
       const naamNP = document.getElementById('naamNP').value;
       const telNr = document.getElementById('telNr').value;
       const recipient = document.getElementById('recepient').value;
@@ -254,9 +404,11 @@
       const payload = {
         applicationType: 'factsheet',
         publishedParameters: [
-          { name: "GEMEENTE", value: gemeente },
-          { name: "SECTIE", value: sectie },
-          { name: "PERCNR", value: percnr },
+          { name: "Een_of_meer_percelen", value: gemeenten.length > 1 ? "2" : "1" },
+          { name: "GEMEENTE", value: gemeenten.join(',') },
+          { name: "SECTIE", value: secties.join(',') },
+          { name: "PERCNR", value: percnrs.join(',') },
+          { name: "Clusternummer", value: clusternrs.join(',') },
           { name: "NaamNP", value: naamNP },
           { name: "TelNr", value: telNr },
           { name: "Recepient", value: recipient }
@@ -290,6 +442,9 @@
         loadingIndicator.style.display = 'none';
       }
     });
+
+    // Initialize with one parcel row
+    addParcelRow();
 
     // Back button functionality
     document.getElementById('backBtn').addEventListener('click', () => {
