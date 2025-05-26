@@ -1,6 +1,7 @@
 const FME_URLS = {
   default: process.env.FME_API_URL,
-  situatietekening: process.env.FME_Situatietekening_URL
+  situatietekening: process.env.FME_Situatietekening_URL,
+  factsheet: process.env.FME_FACTSHEET_URL
 };
 
 export default async function handler(req, res) {
