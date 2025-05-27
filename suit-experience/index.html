@@ -4,7 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta http-equiv="Permissions-Policy" content="camera=*">
-  <title>ML Kit Pose Detection Demo</title>
+
+  <title>ML Kit Pose Detection with Suit Overlay</title>
   <style>
     body {
       margin: 0;
@@ -47,6 +48,10 @@
     const videoElement = document.getElementById('video');
     const canvasElement = document.getElementById('canvas');
     const canvasCtx = canvasElement.getContext('2d');
+
+    // Load the suit image
+    const suitImg = new Image();
+    suitImg.src = 'images/suit.png'; // Make sure this path is correct
 
     // Initialize the detector
     let detector;
@@ -93,6 +98,38 @@
       }
     }
 
+    // Draw the suit overlay
+    function drawSuit(keypoints) {
+      // Get relevant keypoints
+      const leftShoulder = keypoints[5];  // MoveNet left shoulder index
+      const rightShoulder = keypoints[6]; // MoveNet right shoulder index
+      const leftHip = keypoints[11];      // MoveNet left hip index
+      const rightHip = keypoints[12];     // MoveNet right hip index
+
+      // Check if we have enough keypoints with good confidence
+      if (leftShoulder.score > 0.3 && rightShoulder.score > 0.3 &&
+          leftHip.score > 0.3 && rightHip.score > 0.3) {
+        
+        // Calculate suit dimensions based on shoulder width
+        const shoulderWidth = Math.abs(rightShoulder.x - leftShoulder.x) * canvasElement.width;
+        const suitWidth = shoulderWidth * 2.5; // Adjust multiplier as needed
+        const suitHeight = suitWidth * 2; // Adjust ratio as needed
+
+        // Calculate suit position
+        const centerX = (leftShoulder.x + rightShoulder.x) / 2 * canvasElement.width;
+        const centerY = (leftShoulder.y + rightShoulder.y) / 2 * canvasElement.height;
+
+        // Draw the suit
+        canvasCtx.drawImage(
+          suitImg,
+          centerX - suitWidth / 2,
+          centerY - suitHeight / 2,
+          suitWidth,
+          suitHeight
+        );
+      }
+    }
+
     // Process each frame
     async function detectPose() {
       if (detector) {
@@ -104,10 +141,14 @@
         // Draw the video frame
         canvasCtx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
         
-        // Draw the poses
+        // Draw the poses and suit
         for (const pose of poses) {
-          drawKeypoints(pose.keypoints);
-          drawSkeleton(pose.keypoints);
+          // Comment out these lines if you don't want to see the pose visualization
+          // drawKeypoints(pose.keypoints);
+          // drawSkeleton(pose.keypoints);
+          
+          // Draw the suit overlay
+          drawSuit(pose.keypoints);
         }
       }
       requestAnimationFrame(detectPose);
