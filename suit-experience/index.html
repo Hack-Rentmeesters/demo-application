@@ -182,13 +182,13 @@
           leftHip.score > 0.3 && rightHip.score > 0.3) {
         
         // Calculate suit dimensions based on shoulder width
-        const shoulderWidth = Math.abs(rightShoulder.x - leftShoulder.x) * canvasElement.width;
+        const shoulderWidth = Math.abs(rightShoulder.x - leftShoulder.x);
         const suitWidth = shoulderWidth * 2.5; // Adjust multiplier as needed
         const suitHeight = suitWidth * 2; // Adjust ratio as needed
 
         // Calculate suit position
-        const centerX = (leftShoulder.x + rightShoulder.x) / 2 * canvasElement.width;
-        const centerY = (leftShoulder.y + rightShoulder.y) / 2 * canvasElement.height;
+        const centerX = (leftShoulder.x + rightShoulder.x) / 2;
+        const centerY = (leftShoulder.y + rightShoulder.y) / 2;
 
         const suitInfo = {
           centerX,
