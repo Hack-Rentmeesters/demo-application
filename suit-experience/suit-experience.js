@@ -1,0 +1,55 @@
+const videoElement = document.getElementById('video');
+const canvasElement = document.getElementById('canvas');
+const canvasCtx = canvasElement.getContext('2d');
+
+// Load your transparent suit overlay
+const suitImg = new Image();
+suitImg.src = 'images/suit.png'; // suit overlay should be inside /images/
+
+const pose = new Pose.Pose({
+  locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
+});
+pose.setOptions({
+  modelComplexity: 1,
+  smoothLandmarks: true,
+  enableSegmentation: false,
+  minDetectionConfidence: 0.5,
+  minTrackingConfidence: 0.5
+});
+
+pose.onResults((results) => {
+  canvasCtx.save();
+  canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+  canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+  if (results.poseLandmarks) {
+    const leftShoulder = results.poseLandmarks[11];
+    const rightShoulder = results.poseLandmarks[12];
+
+    const suitWidth = Math.abs(rightShoulder.x - leftShoulder.x) * canvasElement.width * 2;
+    const suitHeight = suitWidth * 1.2;
+
+    const centerX = (leftShoulder.x + rightShoulder.x) / 2 * canvasElement.width;
+    const centerY = (leftShoulder.y + rightShoulder.y) / 2 * canvasElement.height;
+
+    canvasCtx.drawImage(
+      suitImg,
+      centerX - suitWidth / 2,
+      centerY - suitHeight / 2,
+      suitWidth,
+      suitHeight
+    );
+  }
+
+  canvasCtx.restore();
+});
+
+// Webcam setup
+const camera = new Camera.Camera(videoElement, {
+  onFrame: async () => {
+    await pose.send({image: videoElement});
+  },
+  width: 640,
+  height: 480
+});
+camera.start();
