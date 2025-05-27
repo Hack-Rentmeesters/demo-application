@@ -31,9 +31,21 @@
   <canvas id="canvas" width="640" height="480"></canvas>
 
   <!-- Load MediaPipe dependencies -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/pose.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1675466869/camera_utils.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3.1675466869/drawing_utils.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/pose.js"></script>
+
+  <!-- Wait for all scripts to load -->
+  <script>
+    window.addEventListener('load', () => {
+      // Check if CameraUtils is available
+      if (typeof CameraUtils === 'undefined') {
+        console.error('CameraUtils not loaded. Please check the script loading order.');
+      } else {
+        console.log('CameraUtils loaded successfully');
+      }
+    });
+  </script>
 
   <!-- Your logic -->
   <script src="suit-experience.js"></script>
