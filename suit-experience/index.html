@@ -33,7 +33,12 @@
     canvas {
       z-index: 2;
     }
-    #toggleSuit {
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    button {
       padding: 10px 20px;
       font-size: 16px;
       background-color: #4CAF50;
@@ -43,16 +48,29 @@
       cursor: pointer;
       z-index: 3;
     }
-    #toggleSuit:hover {
+    button:hover {
       background-color: #45a049;
     }
-    #toggleSuit.active {
+    button.active {
       background-color: #f44336;
     }
     #debugInfo {
       color: white;
       margin-top: 10px;
       font-family: monospace;
+    }
+    .slider-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .slider-container label {
+      color: white;
+      min-width: 100px;
+    }
+    input[type="range"] {
+      width: 200px;
     }
   </style>
 </head>
@@ -61,7 +79,25 @@
     <video id="video" width="640" height="480" autoplay muted playsinline></video>
     <canvas id="canvas" width="640" height="480"></canvas>
   </div>
-  <button id="toggleSuit">Show Suit Overlay</button>
+  <div class="controls">
+    <button id="toggleSuit">Show Suit Overlay</button>
+    <button id="calibrate">Calibrate Position</button>
+  </div>
+  <div class="slider-container">
+    <label for="verticalOffset">Vertical Offset:</label>
+    <input type="range" id="verticalOffset" min="-100" max="100" value="0">
+    <span id="verticalOffsetValue">0</span>
+  </div>
+  <div class="slider-container">
+    <label for="horizontalOffset">Horizontal Offset:</label>
+    <input type="range" id="horizontalOffset" min="-100" max="100" value="0">
+    <span id="horizontalOffsetValue">0</span>
+  </div>
+  <div class="slider-container">
+    <label for="sizeMultiplier">Size Multiplier:</label>
+    <input type="range" id="sizeMultiplier" min="50" max="200" value="100">
+    <span id="sizeMultiplierValue">1.0</span>
+  </div>
   <div id="debugInfo"></div>
 
   <!-- Load TensorFlow.js and ML Kit -->
@@ -74,11 +110,24 @@
     const canvasElement = document.getElementById('canvas');
     const canvasCtx = canvasElement.getContext('2d');
     const toggleButton = document.getElementById('toggleSuit');
+    const calibrateButton = document.getElementById('calibrate');
     const debugInfo = document.getElementById('debugInfo');
+    const verticalOffsetSlider = document.getElementById('verticalOffset');
+    const horizontalOffsetSlider = document.getElementById('horizontalOffset');
+    const sizeMultiplierSlider = document.getElementById('sizeMultiplier');
+    const verticalOffsetValue = document.getElementById('verticalOffsetValue');
+    const horizontalOffsetValue = document.getElementById('horizontalOffsetValue');
+    const sizeMultiplierValue = document.getElementById('sizeMultiplierValue');
 
     // Track if suit overlay is enabled
     let showSuit = false;
     let suitImageLoaded = false;
+    let isCalibrating = false;
+    let calibrationOffsets = {
+      vertical: 0,
+      horizontal: 0,
+      size: 1.0
+    };
 
     // Load the suit image
     const suitImg = new Image();
@@ -106,6 +155,30 @@
       toggleButton.textContent = showSuit ? 'Hide Suit Overlay' : 'Show Suit Overlay';
       toggleButton.classList.toggle('active');
       updateDebugInfo(`Suit overlay ${showSuit ? 'enabled' : 'disabled'}`);
+    });
+
+    // Calibration button
+    calibrateButton.addEventListener('click', () => {
+      isCalibrating = !isCalibrating;
+      calibrateButton.textContent = isCalibrating ? 'Save Calibration' : 'Calibrate Position';
+      calibrateButton.classList.toggle('active');
+      updateDebugInfo(`Calibration ${isCalibrating ? 'started' : 'saved'}`);
+    });
+
+    // Update offset values
+    verticalOffsetSlider.addEventListener('input', (e) => {
+      calibrationOffsets.vertical = parseInt(e.target.value);
+      verticalOffsetValue.textContent = calibrationOffsets.vertical;
+    });
+
+    horizontalOffsetSlider.addEventListener('input', (e) => {
+      calibrationOffsets.horizontal = parseInt(e.target.value);
+      horizontalOffsetValue.textContent = calibrationOffsets.horizontal;
+    });
+
+    sizeMultiplierSlider.addEventListener('input', (e) => {
+      calibrationOffsets.size = parseInt(e.target.value) / 100;
+      sizeMultiplierValue.textContent = calibrationOffsets.size.toFixed(1);
     });
 
     // Initialize the detector
@@ -183,18 +256,19 @@
         
         // Calculate suit dimensions based on shoulder width
         const shoulderWidth = Math.abs(rightShoulder.x - leftShoulder.x);
-        const suitWidth = shoulderWidth * 2.5; // Adjust multiplier as needed
+        const suitWidth = shoulderWidth * 2.5 * calibrationOffsets.size; // Apply size multiplier
         const suitHeight = suitWidth * 2; // Adjust ratio as needed
 
-        // Calculate suit position
-        const centerX = (leftShoulder.x + rightShoulder.x) / 2;
-        const centerY = (leftShoulder.y + rightShoulder.y) / 2;
+        // Calculate suit position with offsets
+        const centerX = (leftShoulder.x + rightShoulder.x) / 2 + (calibrationOffsets.horizontal / 100);
+        const centerY = (leftShoulder.y + rightShoulder.y) / 2 + (calibrationOffsets.vertical / 100);
 
         const suitInfo = {
           centerX,
           centerY,
           suitWidth,
-          suitHeight
+          suitHeight,
+          offsets: calibrationOffsets
         };
         console.log('Drawing suit at:', suitInfo);
         updateDebugInfo(`Drawing suit at: ${JSON.stringify(suitInfo)}`);
