@@ -91,7 +91,7 @@ async function init() {
     await setupCamera();
     
     // Then start the camera and pose detection
-    const camera = new CameraUtils.Camera(videoElement, {
+    const camera = new Camera(videoElement, {
       onFrame: async () => {
         try {
           await pose.send({image: videoElement});
