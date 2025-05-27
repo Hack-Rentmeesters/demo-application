@@ -47,6 +47,8 @@
   <script>
     window.addEventListener('load', () => {
       console.log('Pose available:', typeof Pose !== 'undefined');
+      console.log('Pose constructor:', typeof Pose);
+      console.log('Pose properties:', Object.keys(Pose));
       console.log('CameraUtils available:', typeof CameraUtils !== 'undefined');
       console.log('DrawingUtils available:', typeof DrawingUtils !== 'undefined');
     });
