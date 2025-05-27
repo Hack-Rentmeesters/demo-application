@@ -1,3 +1,4 @@
+// Get DOM elements
 const videoElement = document.getElementById('video');
 const canvasElement = document.getElementById('canvas');
 const canvasCtx = canvasElement.getContext('2d');
@@ -6,29 +7,6 @@ const canvasCtx = canvasElement.getContext('2d');
 const suitImg = new Image();
 suitImg.src = 'images/suit.png'; // suit overlay should be inside /images/
 
-// Function to request camera permissions
-async function setupCamera() {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        width: 640,
-        height: 480,
-        facingMode: 'user'
-      }
-    });
-    videoElement.srcObject = stream;
-    return new Promise((resolve) => {
-      videoElement.onloadedmetadata = () => {
-        resolve(videoElement);
-      };
-    });
-  } catch (error) {
-    console.error('Error accessing camera:', error);
-    alert('Unable to access camera. Please make sure you have granted camera permissions.');
-    throw error;
-  }
-}
-
 // Initialize pose detection
 const pose = new Pose.Pose({
   locateFile: (file) => {
@@ -36,6 +14,7 @@ const pose = new Pose.Pose({
   }
 });
 
+// Configure pose detection
 pose.setOptions({
   modelComplexity: 1,
   smoothLandmarks: true,
@@ -44,16 +23,17 @@ pose.setOptions({
   minTrackingConfidence: 0.5
 });
 
-// Add debug logging to check if pose detection is working
+// Handle pose detection results
 pose.onResults((results) => {
-  console.log('Pose detection results:', results.poseLandmarks ? 'Landmarks detected' : 'No landmarks');
-  
-  canvasCtx.save();
+  // Clear the canvas
   canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+  
+  // Draw the video frame
   canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
-
+  
+  // If pose landmarks are detected
   if (results.poseLandmarks) {
-    // Draw pose landmarks for debugging
+    // Draw the pose landmarks
     drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, {
       color: '#00FF00',
       lineWidth: 2
@@ -80,24 +60,34 @@ pose.onResults((results) => {
       suitHeight
     );
   }
-
-  canvasCtx.restore();
 });
 
-// Initialize everything
+// Initialize camera and start pose detection
 async function init() {
   try {
-    // First request camera permissions
-    await setupCamera();
+    // Request camera access
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        width: 640,
+        height: 480,
+        facingMode: 'user'
+      }
+    });
     
-    // Then start the camera and pose detection
+    // Set up video stream
+    videoElement.srcObject = stream;
+    
+    // Wait for video to be ready
+    await new Promise((resolve) => {
+      videoElement.onloadedmetadata = () => {
+        resolve();
+      };
+    });
+
+    // Start the camera
     const camera = new CameraUtils.Camera(videoElement, {
       onFrame: async () => {
-        try {
-          await pose.send({image: videoElement});
-        } catch (error) {
-          console.error('Error in pose detection:', error);
-        }
+        await pose.send({image: videoElement});
       },
       width: 640,
       height: 480
@@ -105,22 +95,18 @@ async function init() {
 
     // Start the camera
     await camera.start();
-    console.log('Camera started successfully');
+    console.log('Camera and pose detection started successfully');
   } catch (error) {
     console.error('Failed to initialize:', error);
+    alert('Failed to start camera. Please make sure you have granted camera permissions.');
   }
 }
 
-// Wait for all scripts to load before starting
+// Start the application when the page loads
 window.addEventListener('load', () => {
-  if (typeof Pose === 'undefined') {
-    console.error('Pose not loaded. Please check the script loading order.');
+  if (typeof Pose === 'undefined' || typeof CameraUtils === 'undefined') {
+    console.error('Required MediaPipe dependencies not loaded');
     return;
   }
-  if (typeof CameraUtils === 'undefined') {
-    console.error('CameraUtils not loaded. Please check the script loading order.');
-    return;
-  }
-  console.log('All dependencies loaded, starting application...');
   init();
 });
