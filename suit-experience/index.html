@@ -39,22 +39,55 @@
   </div>
 
   <!-- Load MediaPipe dependencies -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/pose.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1675466869/camera_utils.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3.1675466869/drawing_utils.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/pose.js"></script>
-
-  <!-- Debug script to check if dependencies are loaded -->
-  <script>
-    window.addEventListener('load', () => {
-      console.log('Pose available:', typeof Pose !== 'undefined');
-      console.log('Pose constructor:', typeof Pose);
-      console.log('Pose properties:', Object.keys(Pose));
-      console.log('CameraUtils available:', typeof CameraUtils !== 'undefined');
-      console.log('DrawingUtils available:', typeof DrawingUtils !== 'undefined');
-    });
-  </script>
 
   <!-- Your logic -->
-  <script src="suit-experience.js"></script>
+  <script>
+    const videoElement = document.getElementById('video');
+    const canvasElement = document.getElementById('canvas');
+    const canvasCtx = canvasElement.getContext('2d');
+
+    function onResults(results) {
+      canvasCtx.save();
+      canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+      canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+      
+      if (results.poseLandmarks) {
+        drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS,
+                      {color: '#00FF00', lineWidth: 2});
+        drawLandmarks(canvasCtx, results.poseLandmarks,
+                     {color: '#FF0000', lineWidth: 1});
+      }
+      canvasCtx.restore();
+    }
+
+    const pose = new Pose.Pose({
+      locateFile: (file) => {
+        return `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/${file}`;
+      }
+    });
+
+    pose.setOptions({
+      modelComplexity: 1,
+      smoothLandmarks: true,
+      enableSegmentation: false,
+      minDetectionConfidence: 0.5,
+      minTrackingConfidence: 0.5
+    });
+
+    pose.onResults(onResults);
+
+    const camera = new Camera(videoElement, {
+      onFrame: async () => {
+        await pose.send({image: videoElement});
+      },
+      width: 640,
+      height: 480
+    });
+
+    camera.start();
+  </script>
 </body>
 </html>
