@@ -12,12 +12,14 @@
       overflow: hidden;
       background-color: #000;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
     }
     .container {
       position: relative;
+      margin-bottom: 20px;
     }
     canvas, video {
       position: absolute;
@@ -31,6 +33,22 @@
     canvas {
       z-index: 2;
     }
+    #toggleSuit {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      z-index: 3;
+    }
+    #toggleSuit:hover {
+      background-color: #45a049;
+    }
+    #toggleSuit.active {
+      background-color: #f44336;
+    }
   </style>
 </head>
 <body>
@@ -38,6 +56,7 @@
     <video id="video" width="640" height="480" autoplay muted playsinline></video>
     <canvas id="canvas" width="640" height="480"></canvas>
   </div>
+  <button id="toggleSuit">Show Suit Overlay</button>
 
   <!-- Load TensorFlow.js and ML Kit -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
@@ -48,10 +67,14 @@
     const videoElement = document.getElementById('video');
     const canvasElement = document.getElementById('canvas');
     const canvasCtx = canvasElement.getContext('2d');
+    const toggleButton = document.getElementById('toggleSuit');
+
+    // Track if suit overlay is enabled
+    let showSuit = false;
 
     // Load the suit image
     const suitImg = new Image();
-    suitImg.src = './images/suit.png'; // Updated path to be relative to current directory
+    suitImg.src = './images/suit.png';
     
     // Debug suit image loading
     suitImg.onload = () => {
@@ -60,6 +83,13 @@
     suitImg.onerror = (error) => {
       console.error('Error loading suit image:', error);
     };
+
+    // Toggle suit overlay
+    toggleButton.addEventListener('click', () => {
+      showSuit = !showSuit;
+      toggleButton.textContent = showSuit ? 'Hide Suit Overlay' : 'Show Suit Overlay';
+      toggleButton.classList.toggle('active');
+    });
 
     // Initialize the detector
     let detector;
@@ -109,6 +139,8 @@
 
     // Draw the suit overlay
     function drawSuit(keypoints) {
+      if (!showSuit) return;
+
       // Get relevant keypoints
       const leftShoulder = keypoints[5];  // MoveNet left shoulder index
       const rightShoulder = keypoints[6]; // MoveNet right shoulder index
@@ -170,11 +202,11 @@
         
         // Draw the poses and suit
         for (const pose of poses) {
-          // Uncomment these lines to see the pose visualization
+          // Always show pose visualization
           drawKeypoints(pose.keypoints);
           drawSkeleton(pose.keypoints);
           
-          // Draw the suit overlay
+          // Draw the suit overlay only if enabled
           drawSuit(pose.keypoints);
         }
       }
