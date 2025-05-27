@@ -47,7 +47,7 @@ pose.onResults((results) => {
 });
 
 // Webcam setup
-const camera = new CameraUtils.Camera(videoElement, {
+const camera = new Camera(videoElement, {
   onFrame: async () => {
     await pose.send({image: videoElement});
   },
