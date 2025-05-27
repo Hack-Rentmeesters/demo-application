@@ -51,7 +51,15 @@
 
     // Load the suit image
     const suitImg = new Image();
-    suitImg.src = 'images/suit.png'; // Make sure this path is correct
+    suitImg.src = './images/suit.png'; // Updated path to be relative to current directory
+    
+    // Debug suit image loading
+    suitImg.onload = () => {
+      console.log('Suit image loaded successfully');
+    };
+    suitImg.onerror = (error) => {
+      console.error('Error loading suit image:', error);
+    };
 
     // Initialize the detector
     let detector;
@@ -61,6 +69,7 @@
         modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING
       };
       detector = await poseDetection.createDetector(model, detectorConfig);
+      console.log('Pose detector initialized');
     }
 
     // Draw the keypoints
@@ -106,8 +115,17 @@
       const leftHip = keypoints[11];      // MoveNet left hip index
       const rightHip = keypoints[12];     // MoveNet right hip index
 
+      // Debug keypoints
+      console.log('Keypoints:', {
+        leftShoulder: leftShoulder ? { x: leftShoulder.x, y: leftShoulder.y, score: leftShoulder.score } : null,
+        rightShoulder: rightShoulder ? { x: rightShoulder.x, y: rightShoulder.y, score: rightShoulder.score } : null,
+        leftHip: leftHip ? { x: leftHip.x, y: leftHip.y, score: leftHip.score } : null,
+        rightHip: rightHip ? { x: rightHip.x, y: rightHip.y, score: rightHip.score } : null
+      });
+
       // Check if we have enough keypoints with good confidence
-      if (leftShoulder.score > 0.3 && rightShoulder.score > 0.3 &&
+      if (leftShoulder && rightShoulder && leftHip && rightHip &&
+          leftShoulder.score > 0.3 && rightShoulder.score > 0.3 &&
           leftHip.score > 0.3 && rightHip.score > 0.3) {
         
         // Calculate suit dimensions based on shoulder width
@@ -119,6 +137,13 @@
         const centerX = (leftShoulder.x + rightShoulder.x) / 2 * canvasElement.width;
         const centerY = (leftShoulder.y + rightShoulder.y) / 2 * canvasElement.height;
 
+        console.log('Drawing suit at:', {
+          centerX,
+          centerY,
+          suitWidth,
+          suitHeight
+        });
+
         // Draw the suit
         canvasCtx.drawImage(
           suitImg,
@@ -127,6 +152,8 @@
           suitWidth,
           suitHeight
         );
+      } else {
+        console.log('Not enough keypoints with good confidence');
       }
     }
 
@@ -143,9 +170,9 @@
         
         // Draw the poses and suit
         for (const pose of poses) {
-          // Comment out these lines if you don't want to see the pose visualization
-          // drawKeypoints(pose.keypoints);
-          // drawSkeleton(pose.keypoints);
+          // Uncomment these lines to see the pose visualization
+          drawKeypoints(pose.keypoints);
+          drawSkeleton(pose.keypoints);
           
           // Draw the suit overlay
           drawSuit(pose.keypoints);
