@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta http-equiv="Permissions-Policy" content="camera=*">
-  <title>MediaPipe Pose Detection Demo</title>
+  <title>ML Kit Pose Detection Demo</title>
   <style>
     body {
       margin: 0;
@@ -38,9 +38,9 @@
     <canvas id="canvas" width="640" height="480"></canvas>
   </div>
 
-  <!-- Load MediaPipe Solutions -->
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/solutions_pose@0.5.1675469404/solutions_pose.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3.1675466869/drawing_utils.js"></script>
+  <!-- Load TensorFlow.js and ML Kit -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
 
   <!-- Your logic -->
   <script>
@@ -48,36 +48,70 @@
     const canvasElement = document.getElementById('canvas');
     const canvasCtx = canvasElement.getContext('2d');
 
-    function onResults(results) {
-      canvasCtx.save();
-      canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-      canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
-      
-      if (results.poseLandmarks) {
-        drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS,
-                      {color: '#00FF00', lineWidth: 2});
-        drawLandmarks(canvasCtx, results.poseLandmarks,
-                     {color: '#FF0000', lineWidth: 1});
-      }
-      canvasCtx.restore();
+    // Initialize the detector
+    let detector;
+    async function initDetector() {
+      const model = poseDetection.SupportedModels.MoveNet;
+      const detectorConfig = {
+        modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING
+      };
+      detector = await poseDetection.createDetector(model, detectorConfig);
     }
 
-    // Initialize the pose detector
-    const pose = new SolutionsPose.Pose({
-      locateFile: (file) => {
-        return `https://cdn.jsdelivr.net/npm/@mediapipe/solutions_pose@0.5.1675469404/${file}`;
+    // Draw the keypoints
+    function drawKeypoints(keypoints) {
+      for (const keypoint of keypoints) {
+        const { x, y, score } = keypoint;
+        if (score > 0.3) {
+          canvasCtx.beginPath();
+          canvasCtx.arc(x, y, 5, 0, 2 * Math.PI);
+          canvasCtx.fillStyle = 'red';
+          canvasCtx.fill();
+        }
       }
-    });
+    }
 
-    pose.setOptions({
-      modelComplexity: 1,
-      smoothLandmarks: true,
-      enableSegmentation: false,
-      minDetectionConfidence: 0.5,
-      minTrackingConfidence: 0.5
-    });
+    // Draw the skeleton
+    function drawSkeleton(keypoints) {
+      const adjacentKeyPoints = poseDetection.util.getAdjacentPairs(
+        poseDetection.SupportedModels.MoveNet
+      );
 
-    pose.onResults(onResults);
+      for (const pair of adjacentKeyPoints) {
+        const [p1, p2] = pair;
+        const keypoint1 = keypoints[p1];
+        const keypoint2 = keypoints[p2];
+
+        if (keypoint1.score > 0.3 && keypoint2.score > 0.3) {
+          canvasCtx.beginPath();
+          canvasCtx.moveTo(keypoint1.x, keypoint1.y);
+          canvasCtx.lineTo(keypoint2.x, keypoint2.y);
+          canvasCtx.strokeStyle = 'green';
+          canvasCtx.lineWidth = 2;
+          canvasCtx.stroke();
+        }
+      }
+    }
+
+    // Process each frame
+    async function detectPose() {
+      if (detector) {
+        const poses = await detector.estimatePoses(videoElement);
+        
+        // Clear the canvas
+        canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+        
+        // Draw the video frame
+        canvasCtx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+        
+        // Draw the poses
+        for (const pose of poses) {
+          drawKeypoints(pose.keypoints);
+          drawSkeleton(pose.keypoints);
+        }
+      }
+      requestAnimationFrame(detectPose);
+    }
 
     // Start the camera
     async function startCamera() {
@@ -98,20 +132,13 @@
           };
         });
 
-        // Start processing frames
-        processFrame();
+        // Initialize the detector and start pose detection
+        await initDetector();
+        detectPose();
       } catch (error) {
         console.error('Error starting camera:', error);
         alert('Failed to start camera. Please make sure you have granted camera permissions.');
       }
-    }
-
-    // Process each frame
-    async function processFrame() {
-      if (videoElement.readyState === 4) {
-        await pose.send({image: videoElement});
-      }
-      requestAnimationFrame(processFrame);
     }
 
     // Start everything
