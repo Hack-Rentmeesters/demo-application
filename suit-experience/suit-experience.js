@@ -44,12 +44,25 @@ pose.setOptions({
   minTrackingConfidence: 0.5
 });
 
+// Add debug logging to check if pose detection is working
 pose.onResults((results) => {
+  console.log('Pose detection results:', results.poseLandmarks ? 'Landmarks detected' : 'No landmarks');
+  
   canvasCtx.save();
   canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
   canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
 
   if (results.poseLandmarks) {
+    // Draw pose landmarks for debugging
+    drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, {
+      color: '#00FF00',
+      lineWidth: 2
+    });
+    drawLandmarks(canvasCtx, results.poseLandmarks, {
+      color: '#FF0000',
+      lineWidth: 1
+    });
+
     const leftShoulder = results.poseLandmarks[11];
     const rightShoulder = results.poseLandmarks[12];
 
@@ -80,12 +93,19 @@ async function init() {
     // Then start the camera and pose detection
     const camera = new CameraUtils.Camera(videoElement, {
       onFrame: async () => {
-        await pose.send({image: videoElement});
+        try {
+          await pose.send({image: videoElement});
+        } catch (error) {
+          console.error('Error in pose detection:', error);
+        }
       },
       width: 640,
       height: 480
     });
-    camera.start();
+
+    // Start the camera
+    await camera.start();
+    console.log('Camera started successfully');
   } catch (error) {
     console.error('Failed to initialize:', error);
   }
