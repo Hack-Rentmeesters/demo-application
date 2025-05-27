@@ -6,8 +6,10 @@ const canvasCtx = canvasElement.getContext('2d');
 const suitImg = new Image();
 suitImg.src = 'images/suit.png'; // suit overlay should be inside /images/
 
-const pose = new Pose.Pose({
-  locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
+const pose = new Pose({
+  locateFile: (file) => {
+    return `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/${file}`;
+  }
 });
 pose.setOptions({
   modelComplexity: 1,
