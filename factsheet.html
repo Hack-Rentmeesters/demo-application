@@ -421,26 +421,38 @@
 
       try {
         const token = localStorage.getItem('authToken');
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 90000); // 30 second timeout
+
         const response = await fetch("https://situatietekening.vercel.app/api/call", {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           },
-          body: JSON.stringify(payload)
+          body: JSON.stringify(payload),
+          signal: controller.signal
         });
+
+        clearTimeout(timeoutId);
 
         const result = await response.json();
 
         if (!response.ok) {
-          alert(`Fout bij verzenden: ${result.error}`);
+          alert(`Fout bij verzenden: ${result.error || 'Onbekende fout'}`);
         } else {
           alert("Verzoek succesvol verzonden!\nStatus: " + result.status + "\nJobID: " + (result.id || 'Onbekend'));
           successMessage.style.display = 'block';
         }
 
       } catch (error) {
-        alert("Netwerkfout: " + error.message);
+        if (error.name === 'AbortError') {
+          alert("Het verzoek duurde te lang. Uw verzoek wordt mogelijk nog verwerkt, controleer uw e-mail voor updates.");
+        } else if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
+          alert("Er is een netwerkfout opgetreden. Uw verzoek wordt mogelijk nog verwerkt, controleer uw e-mail voor updates.");
+        } else {
+          alert("Er is een fout opgetreden: " + error.message);
+        }
       } finally {
         submitBtn.style.display = 'block';
         loadingIndicator.style.display = 'none';
