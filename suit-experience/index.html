@@ -38,10 +38,8 @@
     <canvas id="canvas" width="640" height="480"></canvas>
   </div>
 
-  <!-- Load MediaPipe dependencies -->
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/pose.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1675466869/camera_utils.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3.1675466869/drawing_utils.js"></script>
+  <!-- Load MediaPipe Solutions -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/solutions_pose@0.5.1675469404/solutions_pose.js"></script>
 
   <!-- Your logic -->
   <script>
@@ -63,9 +61,9 @@
       canvasCtx.restore();
     }
 
-    const pose = new Pose.Pose({
+    const pose = new Pose({
       locateFile: (file) => {
-        return `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/${file}`;
+        return `https://cdn.jsdelivr.net/npm/@mediapipe/solutions_pose@0.5.1675469404/${file}`;
       }
     });
 
@@ -79,15 +77,43 @@
 
     pose.onResults(onResults);
 
-    const camera = new Camera(videoElement, {
-      onFrame: async () => {
-        await pose.send({image: videoElement});
-      },
-      width: 640,
-      height: 480
-    });
+    // Start the camera
+    async function startCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            width: 640,
+            height: 480,
+            facingMode: 'user'
+          }
+        });
+        videoElement.srcObject = stream;
+        
+        // Wait for video to be ready
+        await new Promise((resolve) => {
+          videoElement.onloadedmetadata = () => {
+            resolve();
+          };
+        });
 
-    camera.start();
+        // Start processing frames
+        processFrame();
+      } catch (error) {
+        console.error('Error starting camera:', error);
+        alert('Failed to start camera. Please make sure you have granted camera permissions.');
+      }
+    }
+
+    // Process each frame
+    async function processFrame() {
+      if (videoElement.readyState === 4) {
+        await pose.send({image: videoElement});
+      }
+      requestAnimationFrame(processFrame);
+    }
+
+    // Start everything
+    startCamera();
   </script>
 </body>
 </html>
