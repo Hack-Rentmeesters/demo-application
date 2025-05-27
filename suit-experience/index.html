@@ -43,6 +43,15 @@
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3.1675466869/drawing_utils.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/pose.js"></script>
 
+  <!-- Debug script to check if dependencies are loaded -->
+  <script>
+    window.addEventListener('load', () => {
+      console.log('Pose available:', typeof Pose !== 'undefined');
+      console.log('Camera available:', typeof Camera !== 'undefined');
+      console.log('DrawingUtils available:', typeof DrawingUtils !== 'undefined');
+    });
+  </script>
+
   <!-- Your logic -->
   <script src="suit-experience.js"></script>
 </body>

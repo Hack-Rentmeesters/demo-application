@@ -8,7 +8,7 @@ const suitImg = new Image();
 suitImg.src = 'images/suit.png'; // suit overlay should be inside /images/
 
 // Initialize pose detection
-const pose = new Pose.Pose({
+const pose = new Pose({
   locateFile: (file) => {
     return `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/${file}`;
   }
@@ -85,7 +85,7 @@ async function init() {
     });
 
     // Start the camera
-    const camera = new CameraUtils.Camera(videoElement, {
+    const camera = new Camera(videoElement, {
       onFrame: async () => {
         await pose.send({image: videoElement});
       },
@@ -104,7 +104,7 @@ async function init() {
 
 // Start the application when the page loads
 window.addEventListener('load', () => {
-  if (typeof Pose === 'undefined' || typeof CameraUtils === 'undefined') {
+  if (typeof Pose === 'undefined' || typeof Camera === 'undefined') {
     console.error('Required MediaPipe dependencies not loaded');
     return;
   }
