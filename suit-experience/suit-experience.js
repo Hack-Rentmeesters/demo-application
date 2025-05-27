@@ -30,7 +30,7 @@ async function setupCamera() {
 }
 
 // Initialize pose detection
-const pose = new Pose.Pose({
+const pose = new Pose({
   locateFile: (file) => {
     return `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/${file}`;
   }
@@ -91,7 +91,7 @@ async function init() {
     await setupCamera();
     
     // Then start the camera and pose detection
-    const camera = new CameraUtils.Camera(videoElement, {
+    const camera = new Camera(videoElement, {
       onFrame: async () => {
         try {
           await pose.send({image: videoElement});
@@ -111,16 +111,5 @@ async function init() {
   }
 }
 
-// Wait for all scripts to load before starting
-window.addEventListener('load', () => {
-  if (typeof Pose === 'undefined') {
-    console.error('Pose not loaded. Please check the script loading order.');
-    return;
-  }
-  if (typeof CameraUtils === 'undefined') {
-    console.error('CameraUtils not loaded. Please check the script loading order.');
-    return;
-  }
-  console.log('All dependencies loaded, starting application...');
-  init();
-});
+// Start the application
+init();
