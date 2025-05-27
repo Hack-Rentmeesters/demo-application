@@ -49,6 +49,11 @@
     #toggleSuit.active {
       background-color: #f44336;
     }
+    #debugInfo {
+      color: white;
+      margin-top: 10px;
+      font-family: monospace;
+    }
   </style>
 </head>
 <body>
@@ -57,6 +62,7 @@
     <canvas id="canvas" width="640" height="480"></canvas>
   </div>
   <button id="toggleSuit">Show Suit Overlay</button>
+  <div id="debugInfo"></div>
 
   <!-- Load TensorFlow.js and ML Kit -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
@@ -68,27 +74,38 @@
     const canvasElement = document.getElementById('canvas');
     const canvasCtx = canvasElement.getContext('2d');
     const toggleButton = document.getElementById('toggleSuit');
+    const debugInfo = document.getElementById('debugInfo');
 
     // Track if suit overlay is enabled
     let showSuit = false;
+    let suitImageLoaded = false;
 
     // Load the suit image
     const suitImg = new Image();
+    suitImg.crossOrigin = "anonymous"; // Enable CORS
     suitImg.src = './images/suit.png';
     
     // Debug suit image loading
     suitImg.onload = () => {
       console.log('Suit image loaded successfully');
+      suitImageLoaded = true;
+      updateDebugInfo('Suit image loaded');
     };
     suitImg.onerror = (error) => {
       console.error('Error loading suit image:', error);
+      updateDebugInfo('Error loading suit image');
     };
+
+    function updateDebugInfo(message) {
+      debugInfo.innerHTML += message + '<br>';
+    }
 
     // Toggle suit overlay
     toggleButton.addEventListener('click', () => {
       showSuit = !showSuit;
       toggleButton.textContent = showSuit ? 'Hide Suit Overlay' : 'Show Suit Overlay';
       toggleButton.classList.toggle('active');
+      updateDebugInfo(`Suit overlay ${showSuit ? 'enabled' : 'disabled'}`);
     });
 
     // Initialize the detector
@@ -100,6 +117,7 @@
       };
       detector = await poseDetection.createDetector(model, detectorConfig);
       console.log('Pose detector initialized');
+      updateDebugInfo('Pose detector initialized');
     }
 
     // Draw the keypoints
@@ -139,7 +157,9 @@
 
     // Draw the suit overlay
     function drawSuit(keypoints) {
-      if (!showSuit) return;
+      if (!showSuit || !suitImageLoaded) {
+        return;
+      }
 
       // Get relevant keypoints
       const leftShoulder = keypoints[5];  // MoveNet left shoulder index
@@ -148,12 +168,13 @@
       const rightHip = keypoints[12];     // MoveNet right hip index
 
       // Debug keypoints
-      console.log('Keypoints:', {
+      const keypointInfo = {
         leftShoulder: leftShoulder ? { x: leftShoulder.x, y: leftShoulder.y, score: leftShoulder.score } : null,
         rightShoulder: rightShoulder ? { x: rightShoulder.x, y: rightShoulder.y, score: rightShoulder.score } : null,
         leftHip: leftHip ? { x: leftHip.x, y: leftHip.y, score: leftHip.score } : null,
         rightHip: rightHip ? { x: rightHip.x, y: rightHip.y, score: rightHip.score } : null
-      });
+      };
+      console.log('Keypoints:', keypointInfo);
 
       // Check if we have enough keypoints with good confidence
       if (leftShoulder && rightShoulder && leftHip && rightHip &&
@@ -169,12 +190,14 @@
         const centerX = (leftShoulder.x + rightShoulder.x) / 2 * canvasElement.width;
         const centerY = (leftShoulder.y + rightShoulder.y) / 2 * canvasElement.height;
 
-        console.log('Drawing suit at:', {
+        const suitInfo = {
           centerX,
           centerY,
           suitWidth,
           suitHeight
-        });
+        };
+        console.log('Drawing suit at:', suitInfo);
+        updateDebugInfo(`Drawing suit at: ${JSON.stringify(suitInfo)}`);
 
         // Draw the suit
         canvasCtx.drawImage(
@@ -186,6 +209,7 @@
         );
       } else {
         console.log('Not enough keypoints with good confidence');
+        updateDebugInfo('Not enough keypoints with good confidence');
       }
     }
 
