@@ -7,7 +7,7 @@ const FME_URLS = {
 export default async function handler(req, res) {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Allow-Origin', 'https://ahmadrezaka.github.io'); // Or '*'
+    res.setHeader('Access-Control-Allow-Origin', 'https://hack-rentmeesters.github.io'); // Or '*'
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     res.status(204).end();
@@ -15,7 +15,7 @@ export default async function handler(req, res) {
   }
 
   // Add CORS headers for actual requests
-  res.setHeader('Access-Control-Allow-Origin', 'https://ahmadrezaka.github.io'); // Or '*'
+  res.setHeader('Access-Control-Allow-Origin', 'https://hack-rentmeesters.github.io'); // Or '*'
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
