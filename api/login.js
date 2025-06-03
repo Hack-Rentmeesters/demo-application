@@ -1,6 +1,6 @@
 export default function handler(req, res) {
     // CORS headers
-    res.setHeader('Access-Control-Allow-Origin', 'https://ahmadrezaka.github.io');
+    res.setHeader('Access-Control-Allow-Origin', 'https://hack-rentmeesters.github.io');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   
