@@ -28,5 +28,4 @@ export default function handler(req, res) {
     } else {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
-  }
-  
+  } 
