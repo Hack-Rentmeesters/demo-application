@@ -7,16 +7,21 @@ export default function handler(req, res) {
     ];
     
     const origin = req.headers.origin;
+    
+    // Set CORS headers for all responses
     if (allowedOrigins.includes(origin)) {
       res.setHeader('Access-Control-Allow-Origin', origin);
     }
     
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours
   
+    // Handle preflight request
     if (req.method === 'OPTIONS') {
-      return res.status(200).end(); // Handle preflight
+      res.status(200).end();
+      return;
     }
   
     if (req.method !== 'POST') {
