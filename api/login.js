@@ -1,27 +1,11 @@
 export default function handler(req, res) {
     // CORS headers
-    const allowedOrigins = [
-      'https://hack-rentmeesters.github.io',
-      'https://hack-demo-applicatie.vercel.app',
-      'http://localhost:3000'
-    ];
-    
-    const origin = req.headers.origin;
-    
-    // Set CORS headers for all responses
-    if (allowedOrigins.includes(origin)) {
-      res.setHeader('Access-Control-Allow-Origin', origin);
-    }
-    
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-    res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours
+    res.setHeader('Access-Control-Allow-Origin', 'https://hack-rentmeesters.github.io');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   
-    // Handle preflight request
     if (req.method === 'OPTIONS') {
-      res.status(200).end();
-      return;
+      return res.status(200).end(); // Handle preflight
     }
   
     if (req.method !== 'POST') {
